@@ -1,12 +1,6 @@
 
 const { assertInvalidOpcode } = require('./helpers/assertJump');
 var AnnouncementBox = artifacts.require('../contracts/AnnouncementBox.sol');
-var openpgp = require('openpgp');
-var textEncoding = require('text-encoding');
-
-openpgp.initWorker({ path: 'openpgp.worker.js' }) // set the relative web worker path
-openpgp.config.aead_protect = true // activate fast AES-GCM mode (not yet OpenPGP standard)
-
 
 contract('AnnouncementBox', function(accounts) {
   let ab 
@@ -20,74 +14,58 @@ contract('AnnouncementBox', function(accounts) {
   it("set contract creator as owner", async function(){
     assert.equal(owner, accounts[0], "fails setting owner");
   });
+
+  it("set box as unlocked by default", async function(){
+      locked = await ab.locked()
+      assert.isFalse(locked);
+  });
   
-  //describe('#unlockBox', function(){
-  //  it('should prevent non-owners from unlocking the box', async function() {
-  //    const other = accounts[2]
-  //    const owner = await ab.owner.call()
-  //    assert.isTrue(owner !== other)
+  describe('#lock', function(){
+    it('should prevent non-owners from ocking the box', async function() {
+      const other = accounts[2]
+      const owner = await ab.owner.call()
+      assert.isTrue(owner !== other)
 
-	//		return assertInvalidOpcode(async () => {
-  //      await ab.unlock({from: other});
-	//		})
-  //  });
+			return assertInvalidOpcode(async () => {
+        await ab.lock({from: other});
+			})
+    });
 
-  //  it('should set box as unlocked', async function(){
-  //    const other = accounts[2];
-  //    locked = await ab.locked.call()
-  //    assert.isTrue(locked);
-  //    await ab.unlock({from: owner});
-  //    locked = await ab.locked.call()
-  //    assert.isFalse(locked);
-  //  });
-  //}); 
+    it('should set box as locked', async function(){
+      const other = accounts[2];
+      locked = await ab.locked.call()
+      assert.isFalse(locked);
+      await ab.lock({from: owner});
+      locked = await ab.locked.call()
+      assert.isTrue(locked);
+    });
+  }); 
 
-  //describe('#sendSecretAnnouncement', function(){
-  //  describe('when box is unlocked', function(){
-  //    beforeEach(async function() {
-  //      await ab.unlock()
-  //    });
+  describe('#sendSecretAnnouncement', function(){
+    it('allows competitors to submit announcements', async function(){
+      const other = accounts[2];
 
-  //    it('allows competitors to submit announcements', async function(){
-  //      const other = accounts[2];
+      let expectedAnnouncement = 'encrypted_announcement'
+      await ab.sendSecretAnnouncement( expectedAnnouncement , {from: other});
 
-  //      let depth = '100'
-  //      let pin = '1234'
+      var actualSecretAnnouncement = await ab.secretAnnouncements.call(other);
 
-  //      options = {
-  //        data: depth,      // input as Uint8Array (or String)
-  //        passwords: [pin], // multiple passwords possible
-  //        armor: false      // don't ASCII armor (for Uint8Array output)
-  //      };
+      assert.equal(expectedAnnouncement, actualSecretAnnouncement, "fails sending secret announcement");
+    })
 
-  //      ciphertext = await openpgp.encrypt(options);
+    describe('when box is locked', function(){
+      beforeEach(async function() {
+        await ab.lock({from: owner});
+      });
 
-  //      var secretAnnouncement = new textEncoding.TextDecoder("utf-8").decode(ciphertext.message.packets.write());
+      it('should not allow competitors to submit annoncement', async function() {
 
-  //      await ab.sendSecretAnnouncement(secretAnnouncement, {from: other});
+        let expectedAnnouncement = 'encrypted_announcement'
 
-
-  //      var actualSecretAnnouncement = await ab.secretAnnouncements.call(other);
-
-  //      assert.equal(secretAnnouncement, actualSecretAnnouncement, "fails sending secret announcement");
-  //    })
-  //  })
-
-  //})
-
-  //describe('#revealSecretAnnouncement', function(){
-  //  describe('when box is locked', function(){
-  //    it('does not allows competitors to reveal announcements', async function(){
-	//			locked = await ab.locked.call()
-	//			assert.isTrue(locked);
-
-	//			return assertInvalidOpcode(async () => {
-	//				await ac.revealSecretAnnouncement('1234', {from: other});
-	//			})
-  //    })
-  //  })
-
-  //  describe('when box is unlocked', function(){
-  //  })
-  //})
+        return assertInvalidOpcode(async () => {
+          await ab.sendSecretAnnouncement( expectedAnnouncement , {from: accounts[2]});
+        })
+      });
+    });
+  })
 })

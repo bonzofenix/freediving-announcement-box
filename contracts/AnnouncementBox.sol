@@ -4,7 +4,7 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract AnnouncementBox is Ownable{
   event Test(string str);
-  bool public locked = true;
+  bool public locked = false;
   address public owner;
   mapping (address => string) public secretAnnouncements;
 
@@ -12,11 +12,12 @@ contract AnnouncementBox is Ownable{
     owner = msg.sender;
   }
 
-  function unlock() onlyOwner public{
-		locked = false;
+  function lock() onlyOwner public{
+		locked = true;
   }
 
   function sendSecretAnnouncement(string _secretDepth) public{
+    require(!locked);
     Test(_secretDepth);
     secretAnnouncements[msg.sender] = _secretDepth;
     Test(secretAnnouncements[msg.sender]);
