@@ -2,6 +2,13 @@ import React, { Component } from 'react'
 import AnnouncementBox from '../build/contracts/AnnouncementBox.json'
 import getWeb3 from './utils/getWeb3'
 
+import logo from './logo.png'
+
+// Components
+import Competitor from './Competitor.js'
+
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+
 import './css/oswald.css'
 import './css/open-sans.css'
 import './css/pure-min.css'
@@ -34,40 +41,38 @@ class App extends Component {
     })
   }
 
+
   instantiateContract() {
     const contract = require('truffle-contract')
     const announcementBox = contract(AnnouncementBox)
     announcementBox.setProvider(this.state.web3.currentProvider)
 
-    console.log('banana 1 - a')
-
     announcementBox.deployed().then((instance) => {
-      console.log('banana 3')
       this.setState({announcementBoxInstance: instance})
       return instance
     }).then((result) => {
-      console.log('banana 4')
       return this.state.announcementBoxInstance.owner.call()
     }).then((result) => {
       return this.setState({ owner: result })
     })
   }
 
+  onSubmit = (name, meters) => {
+    console.log(name, meters)
+  }
+
   render() {
     return (
-      <div className="App">
-        <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
-        </nav>
-
-        <main className="container">
-          <div className="pure-g">
-            <div className="pure-u-1-1">
-              <p>This contract was deployed by: {this.state.owner}</p>
-            </div>
-          </div>
-        </main>
-      </div>
+      <MuiThemeProvider>
+        <div style={{ padding: '0 200px', textAlign: 'center' }}>
+					<p>This contract was deployed by: {this.state.owner}</p>
+          <header style={{ height: '150px', padding: '20px' }} >
+            <img src={logo} style={{ height: '100px' }} alt="logo" />
+            <h1>Free Diving Announcements</h1>
+          </header>
+          <Competitor onSubmit={this.onSubmit}/>
+        </div>
+      </MuiThemeProvider>
     );
   }
 }
