@@ -1,5 +1,7 @@
-var SimpleStorage = artifacts.require("./SimpleStorage.sol");
+var AnnouncementBox = artifacts.require("./AnnouncementBox.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(SimpleStorage);
+    deployer.deploy(AnnouncementBox);
+//  deployer.link(ConvertLib, MetaCoin);
+//  deployer.deploy(MetaCoin);
 };
