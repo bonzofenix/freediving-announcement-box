@@ -41,15 +41,20 @@ class Competitor extends Component {
   }
 
   renderAnnouncements = () => {
-  	return mock.announcements
+		const {announcements = [] } = this.props
+
+  	console.log(this.props.announcements)
+  	return announcements 
   		.sort((a,b) => a.meters > b.meters)
-  		.map(a => (
-			<ListItem primaryText={
+  		.map(a => {
+				console.log(a)
+				return <ListItem primaryText={
 		  		<div style={{ padding: '0 0 14px' }}>
 		  			<span style={{ float: 'left'}}>{a.name}</span>
 		  			<span style={{ float: 'right'}}>{a.meters}</span>
 		  		</div> } 
-	  		/>))
+	  		/>
+			})
   }
 
   renderNameError = () => {

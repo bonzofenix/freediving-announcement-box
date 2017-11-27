@@ -14,12 +14,14 @@ import './css/open-sans.css'
 import './css/pure-min.css'
 import './App.css'
 
+const contractInstance = undefined
+
 class App extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      secretAnnouncements: [],
+      announcements: [],
       announcementBoxInstance: null,
       web3: null
     }
@@ -42,22 +44,41 @@ class App extends Component {
   }
 
 
-  instantiateContract() {
+  instantiateContract = async () => {
     const contract = require('truffle-contract')
     const announcementBox = contract(AnnouncementBox)
     announcementBox.setProvider(this.state.web3.currentProvider)
+    contractInstance = await announcementBox.deployed()
 
-    announcementBox.deployed().then((instance) => {
-      this.setState({announcementBoxInstance: instance})
-      return instance
-    }).then((result) => {
-      return this.state.announcementBoxInstance.owner.call()
-    }).then((result) => {
-      return this.setState({ owner: result })
+    const { 
+      LogNewAnnouncement,
+      owner: getOwner,
+      competitorsCount: getCompetitorsCount,
+      competitors: getCompetitor,
+      announcements: getAnnouncement
+    } = contractInstance
+      
+    LogNewAnnouncement().watch( (err, _meters) => { 
+      console.log(_meters)
+      //this.setState({announcements: [...this.state.announcements, {meters: _meters}]})
     })
+
+    this.setState({ owner: await getOwner.call() })
+
+    const competitorsCount = await getCompetitorsCount.call()
+
+    for (var i = 0; i < parseInt(competitorsCount.toString()); i ++) {
+      const address = await getCompetitor.call(i)
+      const meters = await getAnnouncement.call(address)
+      this.setState({announcements: [...this.state.announcements, {meters}]})
+    }
   }
 
   onSubmit = (name, meters) => {
+		this.state.web3.eth.getAccounts((error, accounts) => {
+			console.log(error)
+			return contractInstance.sendAnnouncement(meters.toString(), {from: accounts[0]}) 
+    })
     console.log(name, meters)
   }
 
@@ -70,7 +91,7 @@ class App extends Component {
             <img src={logo} style={{ height: '100px' }} alt="logo" />
             <h1>Free Diving Announcements</h1>
           </header>
-          <Competitor onSubmit={this.onSubmit}/>
+          <Competitor onSubmit={this.onSubmit} announcements={this.state.announcements}/>
         </div>
       </MuiThemeProvider>
     );

@@ -41,16 +41,27 @@ contract('AnnouncementBox', function(accounts) {
     });
   }); 
 
-  describe('#sendSecretAnnouncement', function(){
+  describe('#sendAnnouncement', function(){
     it('allows competitors to submit announcements', async function(){
       const other = accounts[2];
 
       let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendSecretAnnouncement( expectedAnnouncement , {from: other});
+      await ab.sendAnnouncement( expectedAnnouncement , {from: other});
 
-      var actualSecretAnnouncement = await ab.secretAnnouncements.call(other);
+      var actualAnnoncement = await ab.annoncements.call(other);
 
-      assert.equal(expectedAnnouncement, actualSecretAnnouncement, "fails sending secret announcement");
+      assert.equal(expectedAnnouncement, actualAnnoncement, "fails sending secret announcement");
+    })
+
+    it('adds competitor to competitors list', async function(){
+      const other = accounts[2];
+
+      let expectedAnnouncement = 'encrypted_announcement'
+      await ab.sendAnnoncement( expectedAnnouncement , {from: other});
+
+      var competitor = await ab.competitors.call(0);
+
+      assert.equal(competitor, other , "fails to add competitor");
     })
 
     describe('when box is locked', function(){
@@ -63,7 +74,7 @@ contract('AnnouncementBox', function(accounts) {
         let expectedAnnouncement = 'encrypted_announcement'
 
         return assertInvalidOpcode(async () => {
-          await ab.sendSecretAnnouncement( expectedAnnouncement , {from: accounts[2]});
+          await ab.sendAnnouncement( expectedAnnouncement , {from: accounts[2]});
         })
       });
     });
