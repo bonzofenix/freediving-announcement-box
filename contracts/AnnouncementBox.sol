@@ -26,6 +26,7 @@ contract AnnouncementBox is Ownable{
 
   function sendAnnouncement(string _meters) public{
     require(!locked);
+    require( keccak256(announcements[msg.sender]) == keccak256(""));
     Test(_meters);
     announcements[msg.sender] = _meters;
     competitors[competitorsCount] = msg.sender;

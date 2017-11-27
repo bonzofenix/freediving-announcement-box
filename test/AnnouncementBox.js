@@ -5,74 +5,70 @@ var AnnouncementBox = artifacts.require('../contracts/AnnouncementBox.sol');
 contract('AnnouncementBox', function(accounts) {
   let ab 
   let owner
+  let competitor
 
   beforeEach(async function() {
-    ab = await AnnouncementBox.new();
-    owner = await ab.owner();
-  });
+    ab = await AnnouncementBox.new()
+    owner = await ab.owner()
+    competitor = accounts[1]
+  })
 
   it("set contract creator as owner", async function(){
     assert.equal(owner, accounts[0], "fails setting owner");
-  });
+  })
 
   it("set box as unlocked by default", async function(){
-      locked = await ab.locked()
-      assert.isFalse(locked);
-  });
+    assert.isFalse(await ab.locked())
+  })
   
   describe('#lock', function(){
     it('should prevent non-owners from ocking the box', async function() {
-      const other = accounts[2]
-      const owner = await ab.owner.call()
-      assert.isTrue(owner !== other)
-
 			return assertInvalidOpcode(async () => {
-        await ab.lock({from: other});
+        await ab.lock({from: competitor})
 			})
-    });
+    })
 
     it('should set box as locked', async function(){
-      const other = accounts[2];
-      locked = await ab.locked.call()
-      assert.isFalse(locked);
-      await ab.lock({from: owner});
-      locked = await ab.locked.call()
-      assert.isTrue(locked);
-    });
-  }); 
+      assert.isFalse(await ab.locked.call())
+      await ab.lock({from: owner})
+      assert.isTrue(await ab.locked.call())
+    })
+  })
 
   describe('#sendAnnouncement', function(){
     it('allows competitors to submit announcements', async function(){
-      const other = accounts[2];
-
       let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendAnnouncement( expectedAnnouncement , {from: other});
+      await ab.sendAnnouncement(expectedAnnouncement, {from: competitor})
 
-      var actualAnnoncement = await ab.annoncements.call(other);
+      var actualAnnouncement = await ab.announcements.call(competitor)
 
-      assert.equal(expectedAnnouncement, actualAnnoncement, "fails sending secret announcement");
+      assert.equal(expectedAnnouncement, actualAnnouncement, "fails sending secret announcement");
+    })
+
+    it('does not allows competitors to submit 2 announcements', async function(){
+      let expectedAnnouncement = 'encrypted_announcement'
+      await ab.sendAnnouncement( expectedAnnouncement , {from: competitor});
+			return assertInvalidOpcode(async () => {
+        await ab.sendAnnouncement('other_announcement', {from: competitor});
+			})
     })
 
     it('adds competitor to competitors list', async function(){
-      const other = accounts[2];
-
       let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendAnnoncement( expectedAnnouncement , {from: other});
+      await ab.sendAnnouncement( expectedAnnouncement , {from: competitor});
 
-      var competitor = await ab.competitors.call(0);
+      var expectedCompetitor = await ab.competitors.call(0);
 
-      assert.equal(competitor, other , "fails to add competitor");
+      assert.equal(expectedCompetitor, competitor, "fails to add competitor");
     })
 
     describe('when box is locked', function(){
       beforeEach(async function() {
-        await ab.lock({from: owner});
-      });
+        await ab.lock({from: owner})
+      })
 
       it('should not allow competitors to submit annoncement', async function() {
-
         let expectedAnnouncement = 'encrypted_announcement'
-
         return assertInvalidOpcode(async () => {
           await ab.sendAnnouncement( expectedAnnouncement , {from: accounts[2]});
         })
