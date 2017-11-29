@@ -37,17 +37,15 @@ class Competitor extends Component {
   renderMeters = () => {
   	let meters = [...Array(200).keys()]
   	meters.splice(0, 1)
-  	return meters.map(m => <MenuItem value={m} primaryText={`${m} meters`}/>)
+  	return meters.map(m => <MenuItem key={m} value={m} primaryText={`${m} meters`}/>)
   }
 
   renderAnnouncements = () => {
 		const {announcements = [] } = this.props
 
-  	console.log(this.props.announcements)
   	return announcements 
   		.sort((a,b) => a.meters > b.meters)
   		.map(a => {
-				console.log(a)
 				return <ListItem primaryText={
 		  		<div style={{ padding: '0 0 14px' }}>
 		  			<span style={{ float: 'left'}}>{a.name}</span>

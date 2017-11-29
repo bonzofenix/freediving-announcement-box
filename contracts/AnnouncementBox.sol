@@ -9,6 +9,7 @@ contract AnnouncementBox is Ownable{
   //}
 
   event Test(string str);
+  event LogNewAnnouncement(string meters, string name);
   bool public locked = false;
   address public owner;
 
@@ -31,6 +32,7 @@ contract AnnouncementBox is Ownable{
     announcements[msg.sender] = _meters;
     competitors[competitorsCount] = msg.sender;
     competitorsCount++;
+    LogNewAnnouncement(_meters, 'name');
     Test(announcements[msg.sender]);
   }
 }

@@ -14,7 +14,7 @@ import './css/open-sans.css'
 import './css/pure-min.css'
 import './App.css'
 
-const contractInstance = undefined
+let contractInstance = undefined
 
 class App extends Component {
   constructor(props) {
@@ -31,13 +31,12 @@ class App extends Component {
     // Get network provider and web3 instance.
     // See utils/getWeb3 for more info.
 
-    getWeb3
-    .then(results => {
-      this.setState({
-        web3: results.web3
-      })
+    getWeb3.then(results => {
+      this.setState({ web3: results.web3 })
+      console.log('been here')
       this.instantiateContract()
     })
+
     .catch(() => {
       console.log('Error finding web3.')
     })
@@ -58,16 +57,15 @@ class App extends Component {
       announcements: getAnnouncement
     } = contractInstance
       
-    LogNewAnnouncement().watch( (err, _meters) => { 
-      console.log(_meters)
-      //this.setState({announcements: [...this.state.announcements, {meters: _meters}]})
+    LogNewAnnouncement().watch( (err, log) => { 
+      this.setState({announcements: [...this.state.announcements, {name: log.args.name, meters: log.args.meters}]})
     })
 
     this.setState({ owner: await getOwner.call() })
 
     const competitorsCount = await getCompetitorsCount.call()
 
-    for (var i = 0; i < parseInt(competitorsCount.toString()); i ++) {
+    for (var i = 0; i < parseInt(competitorsCount.toString(),10); i ++) {
       const address = await getCompetitor.call(i)
       const meters = await getAnnouncement.call(address)
       this.setState({announcements: [...this.state.announcements, {meters}]})
@@ -79,7 +77,6 @@ class App extends Component {
 			console.log(error)
 			return contractInstance.sendAnnouncement(meters.toString(), {from: accounts[0]}) 
     })
-    console.log(name, meters)
   }
 
   render() {
