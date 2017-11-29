@@ -6,11 +6,14 @@ contract('AnnouncementBox', function(accounts) {
   let ab 
   let owner
   let competitor
+  let competitorName 
+
 
   beforeEach(async function() {
     ab = await AnnouncementBox.new()
     owner = await ab.owner()
     competitor = accounts[1]
+    competitorName = 'Bob'
   })
 
   it("set contract creator as owner", async function(){
@@ -37,25 +40,26 @@ contract('AnnouncementBox', function(accounts) {
 
   describe('#sendAnnouncement', function(){
     it('allows competitors to submit announcements', async function(){
-      let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendAnnouncement(expectedAnnouncement, {from: competitor})
+      let expectedMeters = 'encrypted_meters'
+      await ab.sendAnnouncement(competitorName, expectedMeters, {from: competitor})
 
       var actualAnnouncement = await ab.announcements.call(competitor)
 
-      assert.equal(expectedAnnouncement, actualAnnouncement, "fails sending secret announcement");
+      assert.equal(competitorName, actualAnnouncement[0], "fails sending secret announcement");
+      assert.equal(expectedMeters, actualAnnouncement[1], "fails sending secret announcement");
     })
 
     it('does not allows competitors to submit 2 announcements', async function(){
-      let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendAnnouncement( expectedAnnouncement , {from: competitor});
+      let expectedMeters = 'encrypted_meters'
+      await ab.sendAnnouncement(competitorName, expectedMeters, {from: competitor})
 			return assertInvalidOpcode(async () => {
-        await ab.sendAnnouncement('other_announcement', {from: competitor});
+        await ab.sendAnnouncement(competitorName, expectedMeters, {from: competitor})
 			})
     })
 
     it('adds competitor to competitors list', async function(){
-      let expectedAnnouncement = 'encrypted_announcement'
-      await ab.sendAnnouncement( expectedAnnouncement , {from: competitor});
+      let expectedMeters = 'encrypted_meters'
+      await ab.sendAnnouncement(competitorName, expectedMeters, {from: competitor})
 
       var expectedCompetitor = await ab.competitors.call(0);
 
@@ -68,9 +72,9 @@ contract('AnnouncementBox', function(accounts) {
       })
 
       it('should not allow competitors to submit annoncement', async function() {
-        let expectedAnnouncement = 'encrypted_announcement'
+        let expectedMeters = 'encrypted_meters'
         return assertInvalidOpcode(async () => {
-          await ab.sendAnnouncement( expectedAnnouncement , {from: accounts[2]});
+          await ab.sendAnnouncement(competitorName, expectedMeters, {from: competitor})
         })
       });
     });

@@ -51,6 +51,7 @@ class App extends Component {
 
     const { 
       LogNewAnnouncement,
+      allEvents,
       owner: getOwner,
       competitorsCount: getCompetitorsCount,
       competitors: getCompetitor,
@@ -59,6 +60,11 @@ class App extends Component {
       
     LogNewAnnouncement().watch( (err, log) => { 
       this.setState({announcements: [...this.state.announcements, {name: log.args.name, meters: log.args.meters}]})
+    })
+    // Or pass a callback to start watching immediately
+    allEvents((error, log) =>{
+      if(!error)
+        console.log(log)
     })
 
     this.setState({ owner: await getOwner.call() })
@@ -75,7 +81,7 @@ class App extends Component {
   onSubmit = (name, meters) => {
 		this.state.web3.eth.getAccounts((error, accounts) => {
 			console.log(error)
-			return contractInstance.sendAnnouncement(meters.toString(), {from: accounts[0]}) 
+			return contractInstance.sendAnnouncement(name, meters.toString(), {from: accounts[0]}) 
     })
   }
 

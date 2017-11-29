@@ -3,36 +3,37 @@ pragma solidity ^0.4.4;
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract AnnouncementBox is Ownable{
-  //struct CompetitorAnnoncement {
-  //  string name;
-  //  string meters;
-  //}
+ struct Announcement {
+   string name;
+   string meters;
+   bool isValid;
+ }
 
-  event Test(string str);
-  event LogNewAnnouncement(string meters, string name);
-  bool public locked = false;
-  address public owner;
+ event LogNewAnnouncement(string name, string meters);
+ bool public locked = false;
+ address public owner;
 
-  mapping (address => string) public announcements;
-  address[100] public competitors;
-  uint public competitorsCount;
+ mapping (address => Announcement) public announcements;
+ address[100] public competitors;
+ uint public competitorsCount;
 
-  function AnnouncementBox() {
-    owner = msg.sender;
-  }
+ function AnnouncementBox() {
+   owner = msg.sender;
+ }
 
-  function lock() onlyOwner public{
-		locked = true;
-  }
+ function lock() onlyOwner public{
+ 	locked = true;
+ }
 
-  function sendAnnouncement(string _meters) public{
-    require(!locked);
-    require( keccak256(announcements[msg.sender]) == keccak256(""));
-    Test(_meters);
-    announcements[msg.sender] = _meters;
-    competitors[competitorsCount] = msg.sender;
-    competitorsCount++;
-    LogNewAnnouncement(_meters, 'name');
-    Test(announcements[msg.sender]);
-  }
+ function sendAnnouncement(string _name, string _meters) public{
+   Announcement storage a = announcements[msg.sender];
+
+   require(!locked);
+   require(keccak256(a.name) == keccak256(""));
+
+   announcements[msg.sender] = Announcement(_name, _meters, true);
+   competitors[competitorsCount] = msg.sender;
+   competitorsCount++;
+   LogNewAnnouncement(_name, _meters);
+ }
 }
